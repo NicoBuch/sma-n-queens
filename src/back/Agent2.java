@@ -116,6 +116,7 @@ public class Agent2 implements Runnable {
 	public void nogood(int sender, Set<Entry<Integer, Integer>> nogood) {
 		System.out.println("Agent " + row + " receiving nogood " + nogood);
 		nogoods.add(nogood);
+		agentView.remove(sender);
 		for (Entry<Integer, Integer> entry : nogood) {
 			if (entry.getKey() != row && !links.contains(entry.getKey())) {
 				Object[] args = { row };
