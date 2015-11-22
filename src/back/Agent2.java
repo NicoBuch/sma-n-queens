@@ -1,5 +1,6 @@
 package back;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,7 +92,7 @@ public class Agent2 implements Runnable {
 	public boolean isSolved() {
 		if (agentView.keySet().size() != n - 1)
 			return false;
-		Set<Entry<Integer, Integer>> totalView = totalAgentView(column);
+		Set<Entry<Integer, Integer>> totalView = totalAgentView(agentView.entrySet(), column);
 
 		for (Entry<Integer, Integer> anAgent : totalView) {
 			for (Entry<Integer, Integer> otherAgent : totalView) {
@@ -118,11 +119,11 @@ public class Agent2 implements Runnable {
 		nogoods.add(nogood);
 		for (Entry<Integer, Integer> entry : nogood) {
 			if (entry.getKey() != row && !links.contains(entry.getKey())) {
-				Object[] args = { row };
-				synchronized (blackboard) {
-					blackboard.add(new Message(2, entry.getKey(), args));
-				}
-				links.add(entry.getKey());
+//				Object[] args = { row };
+//				synchronized (blackboard) {
+//					blackboard.add(new Message(2, entry.getKey(), args));
+//				}
+//				links.add(entry.getKey());
 				agentView.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -144,12 +145,11 @@ public class Agent2 implements Runnable {
 //		try {
 //			Thread.sleep(200);
 //		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
-		if (column == -1 || !isConsistent(column)) {
+		if (column == -1 || !isConsistent(agentView.entrySet(), column)) {
 			for (int i : randomDomain()) {
-				if (isConsistent(i)) {
+				if (isConsistent(agentView.entrySet(), i)) {
 					if (column != -1)
 						cg.removeQueen(row, column);
 					column = i;
@@ -190,15 +190,15 @@ public class Agent2 implements Runnable {
 		return clone.entrySet();
 	}
 
-	public boolean isConsistent(int newColumn) {
-		Set<Entry<Integer, Integer>> totalView = totalAgentView(newColumn);
+	public boolean isConsistent(Set<Entry<Integer, Integer>> view, int newColumn) {
+		Set<Entry<Integer, Integer>> totalView = totalAgentView(view, newColumn);
 		for (Set<Entry<Integer, Integer>> nogood : nogoods) {
 			if (isSubset(totalView, nogood)) {
 				return false;
 			}
 		}
 
-		for (Entry<Integer, Integer> otherAgent : agentView.entrySet()) {
+		for (Entry<Integer, Integer> otherAgent : view) {
 			if (otherAgent.getKey() != row) {
 				if (newColumn == otherAgent.getValue())
 					return false;
@@ -222,9 +222,11 @@ public class Agent2 implements Runnable {
 		return true;
 	}
 
-	public Set<Entry<Integer, Integer>> totalAgentView(int newColumn) {
+	public Set<Entry<Integer, Integer>> totalAgentView(Set<Entry<Integer, Integer>> view, int newColumn) {
 		Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-		map.putAll(agentView);
+		for(Entry<Integer, Integer> entry : view){
+			map.put(entry.getKey(), entry.getValue());
+		}
 		map.put(row, newColumn);
 		return map.entrySet();
 	}
@@ -259,7 +261,7 @@ public class Agent2 implements Runnable {
 					needsToAnalizeNogood = true;
 			}
 			if (needsToAnalizeNogood) {
-				for (Entry<Integer, Integer> entry : nogood) {
+				for (Entry<Integer, Integer> entry : cloneEntrySet(nogood)) {
 					if (entry.getKey() != row) {
 						boolean needToRemove = false; // Only if has two
 														// different values
@@ -327,6 +329,46 @@ public class Agent2 implements Runnable {
 				}
 			}
 		}
+	}
+	
+	public Set<Set<Entry<Integer, Integer>>> inconsistentSubsetOfAgentView(){
+		Set<Set<Entry<Integer, Integer>>> answer = new HashSet<Set<Entry<Integer, Integer>>>();
+		Set<Set<Entry<Integer, Integer>>> subsets = powerSet(agentView.entrySet());
+		for(Set<Entry<Integer, Integer>> set : subsets){
+			if(!set.isEmpty() && !isConsistentSet(set)){
+				answer.add(set);
+			}
+		}
+		return answer;
+	}
+	
+	
+	public Set<Set<Entry<Integer, Integer>>> powerSet(Set<Entry<Integer, Integer>> originalSet) {
+        Set<Set<Entry<Integer, Integer>>> sets = new HashSet<Set<Entry<Integer, Integer>>>();
+        if (originalSet.isEmpty()) {
+            sets.add(new HashSet<Entry<Integer, Integer>>());
+            return sets;
+        }
+        List<Entry<Integer, Integer>> list = new ArrayList<Entry<Integer, Integer>>(cloneEntrySet(originalSet));
+        Entry<Integer, Integer> head = list.get(0);
+        Set<Entry<Integer, Integer>> rest = new HashSet<Entry<Integer, Integer>>(list.subList(1, list.size()));
+        for (Set<Entry<Integer, Integer>> set : powerSet(rest)) {
+            Set<Entry<Integer, Integer>> newSet = new HashSet<Entry<Integer, Integer>>();
+            newSet.add(head);
+            newSet.addAll(set);
+            sets.add(newSet);
+            sets.add(set);
+        }
+        return sets;
+    }
+	
+	public boolean isConsistentSet(Set<Entry<Integer, Integer>> set){
+		for(int column = 0; column < n; column++){
+			if(isConsistent(set, column)){
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

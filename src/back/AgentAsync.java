@@ -299,7 +299,7 @@ public class AgentAsync implements Runnable{
 	}
 	
 	public void setColumn(int column){
-		this.column = column;
+		this.column = nogoodsWithoutMecolumn;
 	}
 	
 	public Set<Integer> getLinks(){
