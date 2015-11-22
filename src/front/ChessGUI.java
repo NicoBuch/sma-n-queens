@@ -166,7 +166,7 @@ public class ChessGUI {
 
     private final void createImages() {
         try {
-            BufferedImage bi = ImageIO.read(new File("../resources/chess_pieces.png"));
+            BufferedImage bi = ImageIO.read(new File("resources/chess_pieces.png"));
             for (int ii = 0; ii < 2; ii++) {
                 for (int jj = 0; jj < 6; jj++) {
                     chessPieceImages[ii][jj] = bi.getSubimage(

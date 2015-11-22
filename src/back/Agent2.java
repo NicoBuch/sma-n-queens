@@ -39,7 +39,7 @@ public class Agent2 implements Runnable {
 		boolean end = false;
 		while (!end) {
 			if (isSolved()) {
-//				 System.out.println("Agent " + row + " realized it is solved");
+				System.out.println("Agent " + row + " realized it is solved");
 				agentView.put(row, column);
 				Object[] args2 = { agentView };
 				broadcast(3, args2);
@@ -72,7 +72,7 @@ public class Agent2 implements Runnable {
 						break;
 					case 3:
 						buildSolution((Map<Integer, Integer>) message.getArgs()[0]);
-//						 System.out.println("Im agent " + row + " and Im out");
+						System.out.println("Im agent " + row + " and Im out");
 						end = true;
 						break;
 					}
@@ -108,8 +108,7 @@ public class Agent2 implements Runnable {
 	}
 
 	public void ok(int otherRow, int otherColumn) {
-//		 System.out.println("Agent " + row + " receiving ok? " + otherRow + ", "
-//				+ otherColumn);
+		System.out.println("Agent " + row + " receiving ok? " + otherRow + ", " + otherColumn);
 		agentView.put(otherRow, otherColumn);
 		checkLocalView();
 	}
@@ -158,9 +157,7 @@ public class Agent2 implements Runnable {
 					Object[] args = { row, column };
 					for (Integer link : links) {
 						synchronized (blackboard) {
-//							 System.out.println("Agent " + row
-//									+ " sending ok? at " + column + " to "
-//									+ link);
+							System.out.println("Agent " + row + " sending ok? at " + column + " to " + link);
 							blackboard.add(new Message(0, link, args));
 						}
 					}
@@ -173,8 +170,7 @@ public class Agent2 implements Runnable {
 			}
 			Object[] args = { row, nogood };
 			int minAgent = getLowestPriorityAgentInNogood(nogood);
-//			 System.out.println("Agent " + row + " sending nogood " + nogood
-//					+ " to " + minAgent);
+			System.out.println("Agent " + row + " sending nogood " + nogood + " to " + minAgent);
 			synchronized (blackboard) {
 				blackboard.add(new Message(1, minAgent, args));
 			}
