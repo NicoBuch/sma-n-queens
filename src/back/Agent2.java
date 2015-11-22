@@ -126,14 +126,14 @@ public class Agent2 implements Runnable {
 				agentView.put(entry.getKey(), entry.getValue());
 			}
 		}
-//		int oldValue = column;
+		int oldValue = column;
 		checkLocalView();
-//		if (oldValue == column) {
-//			Object[] args = { row, column };
-//			synchronized (blackboard) {
-//				blackboard.add(new Message(0, sender, args));
-//			}
-//		}
+		if (oldValue == column) {
+			Object[] args = { row, column };
+			synchronized (blackboard) {
+				blackboard.add(new Message(0, sender, args));
+			}
+		}
 	}
 
 	public void addLink(int link) {
@@ -174,8 +174,8 @@ public class Agent2 implements Runnable {
 			synchronized (blackboard) {
 				blackboard.add(new Message(1, minAgent, args));
 			}
-//			agentView.remove(minAgent);
-//			checkLocalView();
+			agentView.remove(minAgent);
+			checkLocalView();
 
 		}
 
