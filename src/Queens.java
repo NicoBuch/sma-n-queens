@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 
 import back.Agent2;
 import back.Message;
+import back.WeakAgent;
 import front.ChessGUI;
 
 
@@ -31,26 +32,25 @@ public class Queens {
         f.pack();
         // ensures the minimum size is enforced.
         f.setMinimumSize(f.getSize());
-        // f.setVisible(true);
+         f.setVisible(true);
 
         ExecutorService executor = Executors.newFixedThreadPool(n);
         List<Message> blackboard = new ArrayList<Message>();
         for(int i = 0; i< n; i++){
-        	Agent2 newAgent = new Agent2(n, cg, i, blackboard);
-        	if(i == n-1){
-    			Random rand = new Random();
-    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
-//    			int col = ;
-    			newAgent.setColumn(col);
-    			cg.putQueen(i, col);
-    			Object[] argss = { i, col };
-
-    			for(int j : newAgent.getLinks()){
-    				synchronized (blackboard) {
-    					blackboard.add(new Message(0, j, argss));
-    				}
-    			}
-        	}
+        	WeakAgent newAgent = new WeakAgent(n, cg, i, blackboard);
+//        	if(i == n-1){
+//    			Random rand = new Random();
+//    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
+//    			newAgent.setColumn(col);
+//    			cg.putQueen(i, col);
+//    			Object[] argss = { i, col };
+//
+//    			for(int j : newAgent.getLinks()){
+//    				synchronized (blackboard) {
+//    					blackboard.add(new Message(0, j, argss));
+//    				}
+//    			}
+//        	}
         	executor.execute(newAgent);
         }
         executor.shutdown();

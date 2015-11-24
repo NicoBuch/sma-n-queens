@@ -39,7 +39,7 @@ public class Agent2 implements Runnable {
 		boolean end = false;
 		while (!end) {
 			if (isSolved()) {
-//				 System.out.println("Agent " + row + " realized it is solved");
+				 System.out.println("Agent " + row + " realized it is solved");
 				agentView.put(row, column);
 				Object[] args2 = { agentView };
 				broadcast(3, args2);
@@ -72,7 +72,7 @@ public class Agent2 implements Runnable {
 						break;
 					case 3:
 						buildSolution((Map<Integer, Integer>) message.getArgs()[0]);
-//						 System.out.println("Im agent " + row + " and Im out");
+						 System.out.println("Im agent " + row + " and Im out");
 						end = true;
 						break;
 					}
@@ -108,25 +108,25 @@ public class Agent2 implements Runnable {
 	}
 
 	public void ok(int otherRow, int otherColumn) {
-//		 System.out.println("Agent " + row + " receiving ok? " + otherRow + ", "
-//				+ otherColumn);
+		 System.out.println("Agent " + row + " receiving ok? " + otherRow + ", "
+				+ otherColumn);
 		agentView.put(otherRow, otherColumn);
 		checkLocalView();
 	}
 
 	public void nogood(int sender, Set<Entry<Integer, Integer>> nogood) {
-//		System.out.println("Agent " + row + " receiving nogood " + nogood);
+		System.out.println("Agent " + row + " receiving nogood " + nogood);
 		nogoods.add(nogood);
-//		for (Entry<Integer, Integer> entry : nogood) {
-//			if (entry.getKey() != row && !links.contains(entry.getKey())) {
+		for (Entry<Integer, Integer> entry : nogood) {
+			if (entry.getKey() != row && !links.contains(entry.getKey())) {
 //				Object[] args = { row };
 //				synchronized (blackboard) {
 //					blackboard.add(new Message(2, entry.getKey(), args));
 //				}
 //				links.add(entry.getKey());
-//				agentView.put(entry.getKey(), entry.getValue());
-//			}
-//		}
+				agentView.put(entry.getKey(), entry.getValue());
+			}
+		}
 //		int oldValue = column;
 		checkLocalView();
 //		if (oldValue == column) {
@@ -142,12 +142,11 @@ public class Agent2 implements Runnable {
 	}
 
 	public void checkLocalView() {
-//		try {
-//			Thread.sleep(200);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		if (column == -1 || !isConsistent(column)) {
 			for (int i : randomDomain()) {
 				if (isConsistent(i)) {
@@ -158,9 +157,9 @@ public class Agent2 implements Runnable {
 					Object[] args = { row, column };
 					for (Integer link : links) {
 						synchronized (blackboard) {
-//							 System.out.println("Agent " + row
-//									+ " sending ok? at " + column + " to "
-//									+ link);
+							System.out.println("Agent " + row
+									+ " sending ok? at " + column + " to "
+									+ link);
 							blackboard.add(new Message(0, link, args));
 						}
 					}
@@ -170,11 +169,12 @@ public class Agent2 implements Runnable {
 			Set<Entry<Integer, Integer>> nogood = newNogood();
 			if (nogood.isEmpty()) {
 				 System.out.println("NO SOLUTION!!!!!!");
+				// TODO: Terminate the algorithm
 			}
 			Object[] args = { row, nogood };
 			int minAgent = getLowestPriorityAgentInNogood(nogood);
-//			 System.out.println("Agent " + row + " sending nogood " + nogood
-//					+ " to " + minAgent);
+			 System.out.println("Agent " + row + " sending nogood " + nogood
+					+ " to " + minAgent);
 			synchronized (blackboard) {
 				blackboard.add(new Message(1, minAgent, args));
 			}
