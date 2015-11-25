@@ -31,7 +31,7 @@ public class Queens {
         f.pack();
         // ensures the minimum size is enforced.
         f.setMinimumSize(f.getSize());
-        // f.setVisible(true);
+         f.setVisible(true);
 
         ExecutorService executor = Executors.newFixedThreadPool(n);
         List<Message> blackboard = new ArrayList<Message>();
@@ -58,7 +58,7 @@ public class Queens {
         while(!executor.isTerminated()){
         }
         System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
-        f.dispose();
+//        f.dispose();
 	}
 
 }

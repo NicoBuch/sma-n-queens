@@ -75,6 +75,10 @@ public class Agent2 implements Runnable {
 //						 System.out.println("Im agent " + row + " and Im out");
 						end = true;
 						break;
+					case 4:
+						broadcast(4, new Object[1]);
+						end = true;
+						break;
 					}
 				}
 			}
@@ -145,7 +149,6 @@ public class Agent2 implements Runnable {
 //		try {
 //			Thread.sleep(200);
 //		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 		if (column == -1 || !isConsistent(column)) {
@@ -170,6 +173,7 @@ public class Agent2 implements Runnable {
 			Set<Entry<Integer, Integer>> nogood = newNogood();
 			if (nogood.isEmpty()) {
 				 System.out.println("NO SOLUTION!!!!!!");
+				 broadcast(4, new Object[1]);
 			}
 			Object[] args = { row, nogood };
 			int minAgent = getLowestPriorityAgentInNogood(nogood);
@@ -331,6 +335,5 @@ public class Agent2 implements Runnable {
 				}
 			}
 		}
-	}
-
+	}	
 }
