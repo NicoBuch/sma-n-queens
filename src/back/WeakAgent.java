@@ -41,10 +41,7 @@ public class WeakAgent implements Runnable{
 	@Override
 	public void run(){
 		Random rand = new Random();
-		if(row == n-1)
-			column = n-1;
-		else
-			column = rand.nextInt(((n-1) - 0) + 1) + 0;
+		column = rand.nextInt(((n-1) - 0) + 1) + 0;
 		sendOk(column);
 		boolean end = false;
 		while (!end) {

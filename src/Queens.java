@@ -58,7 +58,7 @@ public class Queens {
         while(!executor.isTerminated()){
         }
         System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
-        f.dispose();
+//        f.dispose();
 	}
 
 }
