@@ -1,5 +1,6 @@
 package back;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,8 +37,11 @@ public class Agent2 implements Runnable {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
+	}
+	@SuppressWarnings("unchecked")
+	public boolean runSync(){
 		boolean end = false;
-		while (!end) {
+//		while (!end) {
 			if (isSolved()) {
 //				 System.out.println("Agent " + row + " realized it is solved");
 				agentView.put(row, column);
@@ -82,13 +86,14 @@ public class Agent2 implements Runnable {
 					}
 				}
 			}
-		}
+			return end;
+//		}
 	}
 
 	public void buildSolution(Map<Integer, Integer> solution) {
 		if (column != -1)
-			cg.removeQueen(row, column);
-		cg.putQueen(row, solution.get(row));
+			cg.removeQueen(row, column, true);
+		cg.putQueen(row, solution.get(row), agentView, nogoods);
 		return;
 	}
 
@@ -111,9 +116,7 @@ public class Agent2 implements Runnable {
 		return true;
 	}
 
-	public void ok(int otherRow, int otherColumn) {
-//		 System.out.println("Agent " + row + " receiving ok? " + otherRow + ", "
-//				+ otherColumn);
+	public void ok(int otherRow, int otherColumn) {	
 		agentView.put(otherRow, otherColumn);
 		checkLocalView();
 	}
@@ -121,24 +124,7 @@ public class Agent2 implements Runnable {
 	public void nogood(int sender, Set<Entry<Integer, Integer>> nogood) {
 //		System.out.println("Agent " + row + " receiving nogood " + nogood);
 		nogoods.add(nogood);
-//		for (Entry<Integer, Integer> entry : nogood) {
-//			if (entry.getKey() != row && !links.contains(entry.getKey())) {
-//				Object[] args = { row };
-//				synchronized (blackboard) {
-//					blackboard.add(new Message(2, entry.getKey(), args));
-//				}
-//				links.add(entry.getKey());
-//				agentView.put(entry.getKey(), entry.getValue());
-//			}
-//		}
-//		int oldValue = column;
 		checkLocalView();
-//		if (oldValue == column) {
-//			Object[] args = { row, column };
-//			synchronized (blackboard) {
-//				blackboard.add(new Message(0, sender, args));
-//			}
-//		}
 	}
 
 	public void addLink(int link) {
@@ -147,17 +133,35 @@ public class Agent2 implements Runnable {
 
 	public void checkLocalView() {
 //		try {
-//			Thread.sleep(200);
+//			Thread.sleep(350);
 //		} catch (InterruptedException e) {
 //			e.printStackTrace();
 //		}
+		cg.returnOriginalColors();
+		if(column == -1){
+			System.out.println("Es turno del agente de la fila " + (n - row) + " que todavia no tiene columna asignada");
+		}
+		else{
+			System.out.println("Es turno del agente de la fila " + (n - row) + " que está en la columna " + (column+1));
+		}
+		System.out.println("Los nogoods de este agente son: " + nogoods);
+		cg.cleanBoard(n);
+		
+		for(Entry<Integer, Integer> entry : agentView.entrySet()){
+			cg.putQueen(entry.getKey(), entry.getValue());
+		}
+		System.out.println();
+		System.out.println();
+		if(column != -1)
+			cg.putQueen(row, column, agentView, nogoods);
+		cg.paintforbiddenDomain(row, forbiddenDomain());
 		if (column == -1 || !isConsistent(column)) {
 			for (int i : randomDomain()) {
 				if (isConsistent(i)) {
 					if (column != -1)
-						cg.removeQueen(row, column);
+						cg.removeQueen(row, column, true);
 					column = i;
-					cg.putQueen(row, column);
+					cg.putQueen(row, column, agentView, nogoods);
 					Object[] args = { row, column };
 					for (Integer link : links) {
 						synchronized (blackboard) {
@@ -177,14 +181,11 @@ public class Agent2 implements Runnable {
 			}
 			Object[] args = { row, nogood };
 			int minAgent = getLowestPriorityAgentInNogood(nogood);
-//			 System.out.println("Agent " + row + " sending nogood " + nogood
-//					+ " to " + minAgent);
+			 System.out.println("Agente de la fila " + row + " enviando nogood " + nogood
+					+ " al de la fila " + minAgent);
 			synchronized (blackboard) {
 				blackboard.add(new Message(1, minAgent, args));
 			}
-//			agentView.remove(minAgent);
-//			checkLocalView();
-
 		}
 
 	}
@@ -336,4 +337,23 @@ public class Agent2 implements Runnable {
 			}
 		}
 	}	
+	
+	public Map<Integer, Integer> getAgentView(){
+		return agentView;
+	}
+	
+	public Set<Set<Entry<Integer, Integer>>> getNogoods(){
+		return nogoods;
+
+	}
+	
+	public List<Integer> forbiddenDomain(){
+		List<Integer> ans = new ArrayList<Integer>();
+		for(int i = 0;i<n;i++){
+			if(!isConsistent(i)){
+				ans.add(i);
+			}
+		}
+		return ans;
+	}
 }

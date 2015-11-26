@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.swing.JFrame;
 
@@ -32,17 +33,18 @@ public class Queens {
         // ensures the minimum size is enforced.
         f.setMinimumSize(f.getSize());
          f.setVisible(true);
-
+        List<Agent2> agents = new ArrayList<Agent2>();
         ExecutorService executor = Executors.newFixedThreadPool(n);
         List<Message> blackboard = new ArrayList<Message>();
         for(int i = 0; i< n; i++){
         	Agent2 newAgent = new Agent2(n, cg, i, blackboard);
+        	agents.add(newAgent);
         	if(i == n-1){
     			Random rand = new Random();
     			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
 //    			int col = ;
     			newAgent.setColumn(col);
-    			cg.putQueen(i, col);
+    			cg.putQueen(i, col, newAgent.getAgentView(), newAgent.getNogoods());
     			Object[] argss = { i, col };
 
     			for(int j : newAgent.getLinks()){
@@ -51,14 +53,36 @@ public class Queens {
     				}
     			}
         	}
-        	executor.execute(newAgent);
+//        	executor.execute(newAgent);
         }
-        executor.shutdown();
+//        executor.shutdown();
         long time = System.currentTimeMillis();
-        while(!executor.isTerminated()){
+        int allEnded = 0;
+        while(allEnded < n){
+        	for(int i : randomDomain(n)){
+        		if(agents.get(i).runSync())
+        			allEnded++;
+        	}
         }
         System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
 //        f.dispose();
+	}
+	
+	
+	public static int[] randomDomain(int n) {
+		int[] domain = new int[n];
+		for (int i = 0; i < n; i++) {
+			domain[i] = i;
+		}
+		Random rnd = ThreadLocalRandom.current();
+		for (int i = domain.length - 1; i > 0; i--) {
+			int index = rnd.nextInt(i + 1);
+			// Simple swap
+			int a = domain[index];
+			domain[index] = domain[i];
+			domain[i] = a;
+		}
+		return domain;
 	}
 
 }

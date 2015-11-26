@@ -29,7 +29,7 @@ public class SyncQueens {
         f.pack();
         // ensures the minimum size is enforced.
         f.setMinimumSize(f.getSize());
-//        f.setVisible(true);
+        f.setVisible(true);
         
         long time = System.currentTimeMillis();
         Map<Integer, Integer> board = new HashMap<Integer, Integer>();
@@ -39,10 +39,16 @@ public class SyncQueens {
         else{
         	System.out.println("FAILED");
         }
-        f.dispose();
+//        f.dispose();
 	}
 	
 	public static boolean backtrack(int row, int n, Map<Integer, Integer> board, ChessGUI cg) {
+//			try {
+//				Thread.sleep(500);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 		if(board.size() == n && isConsistent(board)){
 			return true;
 		}
@@ -56,7 +62,7 @@ public class SyncQueens {
 			if(backtrack(row+1, n, board, cg)){
 				return true;
 			}
-			cg.removeQueen(row, column);
+			cg.removeQueen(row, column, false);
 			board.remove(row);
 		}
 		return false;

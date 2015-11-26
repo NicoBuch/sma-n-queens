@@ -9,8 +9,16 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -40,6 +48,10 @@ public class ChessGUI {
         ROOK, KNIGHT, BISHOP, KING, QUEEN, BISHOP, KNIGHT, ROOK
     };
     public static final int BLACK = 0, WHITE = 1;
+    
+    public Map<Integer, Integer>[] agentViews;
+    public Set<Set<Entry<Integer, Integer>>>[] nogoods;
+    public MouseAdapter[] adapters;
 
     public ChessGUI(int n) {
     	chessBoardSquares = new JButton[n][n];
@@ -47,28 +59,14 @@ public class ChessGUI {
     }
 
     public final void initializeGui(int n) {
+    	nogoods = (Set<Set<Entry<Integer, Integer>>>[]) new Set[n];
+    	agentViews = (Map<Integer, Integer>[]) new Map[n];
+    	adapters = new MouseAdapter[n];
         // create the images for the chess pieces
         createImages();
 
         // set up the main GUI
         gui.setBorder(new EmptyBorder(5, 5, 5, 5));
-        JToolBar tools = new JToolBar();
-        tools.setFloatable(false);
-        gui.add(tools, BorderLayout.PAGE_START);
-        Action newGameAction = new AbstractAction("New") {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setupNewGame();
-            }
-        };
-        tools.add(newGameAction);
-        tools.add(new JButton("Save")); // TODO - add functionality!
-        tools.add(new JButton("Restore")); // TODO - add functionality!
-        tools.addSeparator();
-        tools.add(new JButton("Resign")); // TODO - add functionality!
-        tools.addSeparator();
-        tools.add(message);
 
         gui.add(new JLabel("?"), BorderLayout.LINE_START);
 
@@ -143,7 +141,7 @@ public class ChessGUI {
         // fill the top row
         for (int ii = 0; ii < n; ii++) {
             chessBoard.add(
-                    new JLabel(String.valueOf(ii + 1),
+                    new JLabel(String.valueOf(ii),
                     SwingConstants.CENTER));
         }
         // fill the black non-pawn piece row
@@ -151,7 +149,7 @@ public class ChessGUI {
             for (int jj = 0; jj < n; jj++) {
                 switch (jj) {
                     case 0:
-                        chessBoard.add(new JLabel("" + ((n+1) - (ii + 1)),
+                        chessBoard.add(new JLabel("" + ii,
                                 SwingConstants.CENTER));
                     default:
                         chessBoard.add(chessBoardSquares[jj][ii]);
@@ -179,19 +177,66 @@ public class ChessGUI {
         }
     }
 
+    public void putQueen(int i, int j, Map<Integer, Integer> agentView, Set<Set<Entry<Integer, Integer>>> nogoods){
+    	this.nogoods[i] = nogoods;
+    	this.agentViews[i] = agentView;
+    	chessBoardSquares[j][i].setIcon(new ImageIcon(chessPieceImages[WHITE][QUEEN]));
+    	adapters[i] = new MouseAdapter() {
+
+            @Override
+            public void mouseEntered(MouseEvent me) {
+            	chessBoardSquares[j][i].setToolTipText("<html><p>Local View: " + agentView + "</p><br>" + "Nogoods: " + nogoods + "</p></html>");
+            }
+        };
+        
+        chessBoardSquares[j][i].addMouseListener(adapters[i]);
+    }
+    
     public void putQueen(int i, int j){
     	chessBoardSquares[j][i].setIcon(new ImageIcon(chessPieceImages[WHITE][QUEEN]));
+    	adapters[i] = new MouseAdapter() {
+
+            @Override
+            public void mouseEntered(MouseEvent me) {
+            	chessBoardSquares[j][i].setToolTipText("<html><p>Local View: " + agentViews[i] + "</p><br>" + "<P>Nogoods: " + nogoods[i] + "</p></html>");
+            }
+        };
+        
+        chessBoardSquares[j][i].addMouseListener(adapters[i]);
     }
 
-    public void removeQueen(int i, int j){
-    	chessBoardSquares[j][i].setIcon(null);;
-//    	Insets buttonMargin = new Insets(0, 0, 0, 0);
-//        JButton b = new JButton();
-//        b.setMargin(buttonMargin);
-//        ImageIcon icon = new ImageIcon(
-//                new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB));
-//        b.setIcon(icon);
-//    	chessBoardSquares[i][j] = b;
+    public void removeQueen(int i, int j, boolean removeListeners){
+    	chessBoardSquares[j][i].setIcon(null);
+    	if(removeListeners && adapters[i] != null){
+    		chessBoardSquares[j][i].removeMouseListener(adapters[i]);
+    	}
+    }
+    
+    public void cleanBoard(int n){
+    	for(int i = 0; i < n; i++)
+    		for(int j=0; j< n; j++)
+    			removeQueen(i, j, true);
+    }
+    
+    public void paintforbiddenDomain(int row, List<Integer> domain){
+    	for(Integer column : domain){
+    		chessBoardSquares[column][row].setBackground(Color.RED);
+    	}
+    }
+    
+    public void returnOriginalColors(){
+        for (int ii = 0; ii < chessBoardSquares.length; ii++) {
+            for (int jj = 0; jj < chessBoardSquares[ii].length; jj++) {
+            	
+                if ((jj % 2 == 1 && ii % 2 == 1)
+//                        ) {
+                        || (jj % 2 == 0 && ii % 2 == 0)) {
+                    chessBoardSquares[ii][jj].setBackground(Color.WHITE);
+                } else {
+                	chessBoardSquares[ii][jj].setBackground(Color.BLACK);
+                }    	
+            }
+        }
     }
 
     /**
