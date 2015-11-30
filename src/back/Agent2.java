@@ -225,7 +225,7 @@ public class Agent2 implements Runnable {
 		for (int i = 0; i < n; i++) {
 			domain[i] = i;
 		}
-		Random rnd = new Random(100);
+		Random rnd = new Random();
 		for (int i = domain.length - 1; i > 0; i--) {
 			int index = rnd.nextInt(i + 1);
 			// Simple swap
@@ -285,12 +285,19 @@ public class Agent2 implements Runnable {
 					if(auxAns == null || auxAns.isEmpty()){
 						return ans;
 					}
+					else{
+						System.out.println(auxAns);
+						return auxAns;
+					}
 					
 				}
 				else if(combinedNogoods.size() > n){
 					auxAns = handleLargeNogoodSet(entry.getKey(), combinedNogoods);
 					if(auxAns == null || auxAns.isEmpty()){
 						return ans;
+					}
+					else{
+						return auxAns;
 					}
 				}
 			}

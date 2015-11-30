@@ -306,7 +306,7 @@ public class ChessGUI {
     public void alert(String message, int agent, Set<Set<Entry<Integer, Integer>>> nogoods){
     	this.message.setText("<html>Turno del agente " + agent + "<br>" + message + "<br>"+ "Nogoods actuales: " + nogoods +"</html>");
     	
-//    	paused.set(true);
+    	paused.set(true);
     	
     	while(paused.get()){
     		try {

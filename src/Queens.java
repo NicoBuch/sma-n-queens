@@ -36,13 +36,12 @@ public class Queens {
         List<Agent2> agents = new ArrayList<Agent2>();
         ExecutorService executor = Executors.newFixedThreadPool(n);
         List<Message> blackboard = new ArrayList<Message>();
-        Random rand = new Random(10911);
+        Random rand = new Random();
         for(int i = 0; i< n; i++){
         	Agent2 newAgent = new Agent2(n, cg, i, blackboard);
         	agents.add(newAgent);
         	if(i == n-1){
-//    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
-        		int col = n-1;
+    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
     			newAgent.setColumn(col);
     			cg.putQueen(i, col, newAgent.getAgentView(), newAgent.getNogoods());
     			Object[] argss = { i, col };
