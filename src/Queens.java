@@ -36,13 +36,13 @@ public class Queens {
         List<Agent2> agents = new ArrayList<Agent2>();
         ExecutorService executor = Executors.newFixedThreadPool(n);
         List<Message> blackboard = new ArrayList<Message>();
+        Random rand = new Random(10911);
         for(int i = 0; i< n; i++){
         	Agent2 newAgent = new Agent2(n, cg, i, blackboard);
         	agents.add(newAgent);
         	if(i == n-1){
-    			Random rand = new Random();
-    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
-//    			int col = ;
+//    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
+        		int col = n-1;
     			newAgent.setColumn(col);
     			cg.putQueen(i, col, newAgent.getAgentView(), newAgent.getNogoods());
     			Object[] argss = { i, col };
@@ -58,14 +58,16 @@ public class Queens {
 //        executor.shutdown();
         long time = System.currentTimeMillis();
         int allEnded = 0;
+        int count = 0;
         while(allEnded < n){
-        	for(int i : randomDomain(n)){
-        		if(agents.get(i).runSync())
-        			allEnded++;
-        	}
+        	int i = rand.nextInt(((n-1) - 0) + 1) + 0;
+        	count++;
+    		if(agents.get(i).runSync())
+    			allEnded++;
         }
         System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
-//        f.dispose();
+        System.out.println("count: "+ count);
+        f.dispose();
 	}
 	
 	

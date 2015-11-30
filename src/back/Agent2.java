@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 import front.ChessGUI;
 
@@ -34,7 +33,6 @@ public class Agent2 implements Runnable {
 		this.blackboard = blackboard;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
 	}
@@ -118,43 +116,29 @@ public class Agent2 implements Runnable {
 
 	public void ok(int otherRow, int otherColumn) {	
 		agentView.put(otherRow, otherColumn);
-		checkLocalView();
+		checkLocalView("OK de " + otherRow + " en " + otherColumn);
 	}
 
 	public void nogood(int sender, Set<Entry<Integer, Integer>> nogood) {
-//		System.out.println("Agent " + row + " receiving nogood " + nogood);
-		nogoods.add(nogood);
-		checkLocalView();
+		addNogood(nogood);
+		checkLocalView("Nogood de " + sender + ": " + nogood);
 	}
 
 	public void addLink(int link) {
 		links.add(link);
 	}
 
-	public void checkLocalView() {
-//		try {
-//			Thread.sleep(350);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
+	public void checkLocalView(String message) {
 		cg.returnOriginalColors();
-		if(column == -1){
-			System.out.println("Es turno del agente de la fila " + (n - row) + " que todavia no tiene columna asignada");
-		}
-		else{
-			System.out.println("Es turno del agente de la fila " + (n - row) + " que está en la columna " + (column+1));
-		}
-		System.out.println("Los nogoods de este agente son: " + nogoods);
 		cg.cleanBoard(n);
 		
 		for(Entry<Integer, Integer> entry : agentView.entrySet()){
 			cg.putQueen(entry.getKey(), entry.getValue());
 		}
-		System.out.println();
-		System.out.println();
 		if(column != -1)
 			cg.putQueen(row, column, agentView, nogoods);
 		cg.paintforbiddenDomain(row, forbiddenDomain());
+		cg.alert(message, row, nogoods);
 		if (column == -1 || !isConsistent(column)) {
 			for (int i : randomDomain()) {
 				if (isConsistent(i)) {
@@ -162,12 +146,10 @@ public class Agent2 implements Runnable {
 						cg.removeQueen(row, column, true);
 					column = i;
 					cg.putQueen(row, column, agentView, nogoods);
+					cg.alert("Pone en la columna " + column + " y envía OK", row, nogoods);
 					Object[] args = { row, column };
 					for (Integer link : links) {
 						synchronized (blackboard) {
-//							 System.out.println("Agent " + row
-//									+ " sending ok? at " + column + " to "
-//									+ link);
 							blackboard.add(new Message(0, link, args));
 						}
 					}
@@ -179,10 +161,10 @@ public class Agent2 implements Runnable {
 				 System.out.println("NO SOLUTION!!!!!!");
 				 broadcast(4, new Object[1]);
 			}
+			addNogood(nogood);
 			Object[] args = { row, nogood };
 			int minAgent = getLowestPriorityAgentInNogood(nogood);
-			 System.out.println("Agente de la fila " + row + " enviando nogood " + nogood
-					+ " al de la fila " + minAgent);
+			cg.alert("Enviando nogood " + nogood + " al agente " + minAgent, row, nogoods);
 			synchronized (blackboard) {
 				blackboard.add(new Message(1, minAgent, args));
 			}
@@ -243,7 +225,7 @@ public class Agent2 implements Runnable {
 		for (int i = 0; i < n; i++) {
 			domain[i] = i;
 		}
-		Random rnd = ThreadLocalRandom.current();
+		Random rnd = new Random(100);
 		for (int i = domain.length - 1; i > 0; i--) {
 			int index = rnd.nextInt(i + 1);
 			// Simple swap
@@ -259,40 +241,64 @@ public class Agent2 implements Runnable {
 		aux.addAll(nogoodsWithoutMe());
 		Set<Entry<Integer, Integer>> ans = new HashSet<Entry<Integer, Integer>>();
 		ans.addAll(cloneEntrySet(agentView.entrySet()));
-		for (Set<Entry<Integer, Integer>> nogood : aux) {
-			boolean needsToAnalizeNogood = false; // Only if nogood contains
-													// entry with current
-													// row
-			for (Entry<Integer, Integer> entry : nogood) {
-				if (entry.getKey() == row)
-					needsToAnalizeNogood = true;
+		Set<Entry<Integer, Integer>> auxAns = cloneEntrySet(ans); 
+		List<Set<Entry<Integer, Integer>>> combinedNogoods = new ArrayList<Set<Entry<Integer, Integer>>>();
+		for(Entry<Integer, Integer> entry : ans){
+			boolean goOn = true;
+			Set<Integer> completedDomain = new HashSet<Integer>();
+			for(int i = 0; i < n && goOn; i++){
+				goOn = false;
+				if(entry.getValue() == i){
+					goOn = true;
+					Set<Entry<Integer, Integer>> asd =  cloneEntrySet(ans);
+					combinedNogoods.add(asd);
+					completedDomain.add(i);
+				}
+				for(Set<Entry<Integer, Integer>> nogood : aux){
+					for(Entry<Integer, Integer> nogoodEntry : nogood){
+						if(nogoodEntry.getKey() == entry.getKey() && nogoodEntry.getValue() == i){
+							goOn = true;
+							Set<Entry<Integer, Integer>> asd =  cloneEntrySet(nogood);
+							combinedNogoods.add(asd);
+							completedDomain.add(i);
+							break;
+						}
+					}
+				}
 			}
-			if (needsToAnalizeNogood) {
-				for (Entry<Integer, Integer> entry : nogood) {
-					if (entry.getKey() != row) {
-						boolean needToRemove = false; // Only if has two
-														// different values
-														// for same key
-						boolean needToAdd = true; // Only if doesn't have
-													// key.
-						for (Entry<Integer, Integer> ansEntry : ans) {
-							if (entry.getKey() == ansEntry.getKey()) {
-								needToAdd = false;
-								if (entry.getValue() != ansEntry.getValue())
-									needToRemove = true;
+			if(completedDomain.size() == n){
+				if(combinedNogoods.size() == n){
+					List<Set<Entry<Integer, Integer>>> toAnalize = new ArrayList<Set<Entry<Integer, Integer>>>();
+					for(Set<Entry<Integer, Integer>> nogood: combinedNogoods){
+						nogoods.remove(nogood);
+						Entry<Integer, Integer> toRemove = null;
+						for(Entry<Integer, Integer> anEntry : nogood){
+							if(anEntry.getKey() == entry.getKey()){
+								toRemove = anEntry;
 							}
 						}
-						if (needToRemove)
-							ans.remove(entry);
-						if (needToAdd)
-							ans.add(entry);
+						Set<Entry<Integer, Integer>> asd = cloneEntrySet(nogood);
+						asd.remove(toRemove);
+						toAnalize.add(asd);
 					}
-
+					auxAns = concatNogoods(toAnalize);
+					if(auxAns == null || auxAns.isEmpty()){
+						return ans;
+					}
+					
 				}
-
+				else if(combinedNogoods.size() > n){
+					auxAns = handleLargeNogoodSet(entry.getKey(), combinedNogoods);
+					if(auxAns == null || auxAns.isEmpty()){
+						return ans;
+					}
+				}
 			}
+			combinedNogoods.clear();
+			completedDomain.clear();
 		}
 		return ans;
+
 	}
 
 	public int getLowestPriorityAgentInNogood(
@@ -356,4 +362,121 @@ public class Agent2 implements Runnable {
 		}
 		return ans;
 	}
+	
+	public void addNogood(Set<Entry<Integer, Integer>> nogood){
+		Set<Set<Entry<Integer, Integer>>> toRemove = new HashSet<Set<Entry<Integer, Integer>>>();
+		for(Set<Entry<Integer, Integer>> myNogood : nogoods){
+			if(isSubset(nogood, myNogood)){
+				nogoods.removeAll(toRemove);
+				return;
+			}
+			else if(isSubset(myNogood, nogood)){
+				toRemove.add(myNogood);
+			}
+		}
+		nogoods.removeAll(toRemove);
+		nogoods.add(nogood);
+	}
+	
+	public Set<Entry<Integer, Integer>> concatNogoods(List<Set<Entry<Integer, Integer>>> combinedNogoods){
+		Set<Entry<Integer, Integer>> answer = null;
+		for(Set<Entry<Integer, Integer>> nogood : combinedNogoods){
+			if(answer == null){
+				answer = nogood;
+			}
+			else{
+				answer = concat(nogood, answer);
+			}
+		}
+		return answer;
+	}
+	
+	public Set<Entry<Integer, Integer>> concat(Set<Entry<Integer, Integer>> nogood, Set<Entry<Integer, Integer>> otherNogood){
+		Set<Entry<Integer, Integer>> concatedNogood = new HashSet<Entry<Integer, Integer>>();
+		if(nogood.isEmpty() || otherNogood.isEmpty()){
+			return concatedNogood;
+		}
+		if(nogood != otherNogood){
+			boolean noNogood = false;
+			for(Entry<Integer, Integer> entry : nogood){
+				if(noNogood){
+					concatedNogood.clear();
+					break;
+				}
+				for(Entry<Integer, Integer> otherEntry : otherNogood){
+					if(entry.getKey() == otherEntry.getKey()){
+						if(entry.getValue() == otherEntry.getValue()){
+							for(Entry<Integer, Integer> cEntry : concatedNogood){
+								if(cEntry.getKey() == entry.getKey() && cEntry.getValue() != entry.getValue()){
+									noNogood = true;
+								}
+							}
+							if(!noNogood)
+								concatedNogood.add(entry);
+						}
+						else{
+							noNogood = true;
+						}
+					}
+					else{
+						for(Entry<Integer, Integer> cEntry : concatedNogood){
+							if(cEntry.getKey() == entry.getKey() && cEntry.getValue() != entry.getValue()){
+								noNogood = true;
+							}
+							if(cEntry.getKey() == otherEntry.getKey() && cEntry.getValue() != otherEntry.getValue()){
+								noNogood = true;
+							}
+						}
+						if(!noNogood){
+							concatedNogood.add(entry);
+							concatedNogood.add(otherEntry);
+						}
+					}
+				}
+			}
+		}
+		return concatedNogood;
+	}
+	
+	public Set<Entry<Integer, Integer>> handleLargeNogoodSet(int key, List<Set<Entry<Integer, Integer>>> combinedNogoods){
+		Set<Map<Integer, Set<Entry<Integer, Integer>>>> alreadyAnalized = new HashSet<Map<Integer, Set<Entry<Integer, Integer>>>>();
+		
+		Map<Integer, Set<Entry<Integer, Integer>>> toAnalize = new HashMap<Integer, Set<Entry<Integer, Integer>>>();
+		for(int i = 0; i < combinedNogoods.size(); i++){
+			for(Set<Entry<Integer, Integer>> otherNogood : combinedNogoods){
+				int lastKey = -1;
+				for(Entry<Integer, Integer> entry : otherNogood){
+					if(entry.getKey() == key){
+						if(!toAnalize.containsKey(entry.getValue())){
+							Set<Entry<Integer, Integer>> asd = cloneEntrySet(otherNogood);
+							asd.remove(entry);
+							toAnalize.put(entry.getValue(), asd);
+							if(alreadyAnalized.contains(toAnalize)){
+								toAnalize.remove(entry.getValue());
+							}
+							else{
+								lastKey = entry.getValue();
+								break;
+							}
+						}
+					}
+				}
+				if(toAnalize.size() == n){
+					Set<Entry<Integer, Integer>> ans = concatNogoods(new ArrayList<Set<Entry<Integer, Integer>>>(toAnalize.values()));
+					if(ans == null || ans.isEmpty()){
+						alreadyAnalized.add(toAnalize);
+						toAnalize.remove(lastKey);
+					}
+					else{
+						for(Set<Entry<Integer, Integer>> theNogood : toAnalize.values()){
+							nogoods.remove(theNogood);
+						}
+						return ans;
+					}
+				}
+			}
+		}
+		return new HashSet<Entry<Integer, Integer>>();
+	}
+	
 }

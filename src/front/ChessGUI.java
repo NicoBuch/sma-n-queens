@@ -8,21 +8,20 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -41,7 +40,7 @@ public class ChessGUI {
     private Image[][] chessPieceImages = new Image[2][6];
     private JPanel chessBoard;
     private final JLabel message = new JLabel(
-            "Chess Champ is ready to play!");
+            "Empecemos!");
     public static final int QUEEN = 0, KING = 1,
             ROOK = 2, KNIGHT = 3, BISHOP = 4, PAWN = 5;
     public static final int[] STARTING_ROW = {
@@ -52,6 +51,7 @@ public class ChessGUI {
     public Map<Integer, Integer>[] agentViews;
     public Set<Set<Entry<Integer, Integer>>>[] nogoods;
     public MouseAdapter[] adapters;
+    private AtomicBoolean paused = new AtomicBoolean(false);
 
     public ChessGUI(int n) {
     	chessBoardSquares = new JButton[n][n];
@@ -62,12 +62,19 @@ public class ChessGUI {
     	nogoods = (Set<Set<Entry<Integer, Integer>>>[]) new Set[n];
     	agentViews = (Map<Integer, Integer>[]) new Map[n];
     	adapters = new MouseAdapter[n];
+
         // create the images for the chess pieces
         createImages();
 
         // set up the main GUI
         gui.setBorder(new EmptyBorder(5, 5, 5, 5));
-
+        
+        JToolBar tools = new JToolBar();
+        tools.setFloatable(false);
+        gui.add(tools, BorderLayout.PAGE_START);   	
+        tools.addSeparator();
+        tools.add(message);
+        
         gui.add(new JLabel("?"), BorderLayout.LINE_START);
 
         chessBoard = new JPanel(new GridLayout(0, n+1)) {
@@ -100,6 +107,63 @@ public class ChessGUI {
                 return new Dimension(s,s);
             }
         };
+        
+    	gui.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				if(paused.get()){
+					paused.set(false);
+				}
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				
+			}
+		});
+    	
+    	gui.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(paused.get()){
+					paused.set(false);
+				}
+				
+			}
+		});
+    	gui.setFocusable(true);
+    	
         chessBoard.setBorder(new CompoundBorder(
                 new EmptyBorder(n,n,n,n),
                 new LineBorder(Color.BLACK)
@@ -238,7 +302,23 @@ public class ChessGUI {
             }
         }
     }
-
+    
+    public void alert(String message, int agent, Set<Set<Entry<Integer, Integer>>> nogoods){
+    	this.message.setText("<html>Turno del agente " + agent + "<br>" + message + "<br>"+ "Nogoods actuales: " + nogoods +"</html>");
+    	
+//    	paused.set(true);
+    	
+    	while(paused.get()){
+    		try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
+    
+    
     /**
      * Initializes the icons of the initial chess board piece places
      */
@@ -263,4 +343,5 @@ public class ChessGUI {
 //                    chessPieceImages[WHITE][STARTING_ROW[ii]]));
 //        }
     }
+   
 }
