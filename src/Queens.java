@@ -32,7 +32,7 @@ public class Queens {
         f.pack();
         // ensures the minimum size is enforced.
         f.setMinimumSize(f.getSize());
-         f.setVisible(true);
+//         f.setVisible(true);
         List<Agent2> agents = new ArrayList<Agent2>();
         ExecutorService executor = Executors.newFixedThreadPool(n);
         List<Message> blackboard = new ArrayList<Message>();
@@ -40,32 +40,33 @@ public class Queens {
         for(int i = 0; i< n; i++){
         	Agent2 newAgent = new Agent2(n, cg, i, blackboard);
         	agents.add(newAgent);
-        	if(i == n-1){
-    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
-    			newAgent.setColumn(col);
-    			cg.putQueen(i, col, newAgent.getAgentView(), newAgent.getNogoods());
-    			Object[] argss = { i, col };
-
-    			for(int j : newAgent.getLinks()){
-    				synchronized (blackboard) {
-    					blackboard.add(new Message(0, j, argss));
-    				}
-    			}
-        	}
-//        	executor.execute(newAgent);
+//        	if(i == n-1){
+//    			int col = rand.nextInt(((n-1) - 0) + 1) + 0;
+//    			newAgent.setColumn(col);
+//    			cg.putQueen(i, col, newAgent.getAgentView(), newAgent.getNogoods());
+//    			Object[] argss = { i, col };
+//
+//    			for(int j : newAgent.getLinks()){
+//    				synchronized (blackboard) {
+//    					blackboard.add(new Message(0, j, argss));
+//    				}
+//    			}
+//        	}
+        	executor.execute(newAgent);
         }
-//        executor.shutdown();
+        executor.shutdown();
+        
         long time = System.currentTimeMillis();
-        int allEnded = 0;
-        int count = 0;
-        while(allEnded < n){
-        	int i = rand.nextInt(((n-1) - 0) + 1) + 0;
-        	count++;
-    		if(agents.get(i).runSync())
-    			allEnded++;
-        }
+        while(!executor.isTerminated());
+//        int allEnded = 0;
+//        while(allEnded < n){
+//        	int i = rand.nextInt(((n-1) - 0) + 1) + 0;
+//        	count++;
+//    		if(agents.get(i).runSync())
+//    			allEnded++;
+//        }
         System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
-        System.out.println("count: "+ count);
+        System.out.println("count: "+ cg.getCount());
         f.dispose();
 	}
 	

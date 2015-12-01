@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import front.ChessGUI;
 
@@ -35,6 +36,18 @@ public class Agent2 implements Runnable {
 
 	@Override
 	public void run() {
+		Random rand = ThreadLocalRandom.current();
+		column = rand.nextInt(((n-1) - 0) + 1) + 0;
+		cg.putQueen(row, column, agentView, nogoods);
+		Object[] argss = { row, column };
+
+		for(int j : links){
+			synchronized (blackboard) {
+				blackboard.add(new Message(0, j, argss));
+			}
+		}
+		while(!runSync());		
+		
 	}
 	@SuppressWarnings("unchecked")
 	public boolean runSync(){
