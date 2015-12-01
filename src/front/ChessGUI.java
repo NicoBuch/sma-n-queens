@@ -325,7 +325,7 @@ public class ChessGUI {
 				.setText("<html>Turno del agente " + agent + "<br>" + message
 						+ "<br>" + "Nogoods actuales: " + nogoods + "</html>");
 
-//		paused.set(true);
+		paused.set(true);
 
 		while (paused.get()) {
 			try {

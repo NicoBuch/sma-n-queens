@@ -39,16 +39,16 @@ public class SyncQueens {
         else{
         	System.out.println("FAILED");
         }
-//        f.dispose();
+        f.dispose();
 	}
 	
 	public static boolean backtrack(int row, int n, Map<Integer, Integer> board, ChessGUI cg) {
-//			try {
-//				Thread.sleep(500);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		if(board.size() == n && isConsistent(board)){
 			return true;
 		}
