@@ -36,21 +36,23 @@ public class Agent2 implements Runnable {
 
 	@Override
 	public void run() {
-		Random rand = ThreadLocalRandom.current();
-		column = rand.nextInt(((n-1) - 0) + 1) + 0;
-		cg.putQueen(row, column, agentView, nogoods);
-		Object[] argss = { row, column };
-
-		for(int j : links){
-			synchronized (blackboard) {
-				blackboard.add(new Message(0, j, argss));
-			}
-		}
 		while(!runSync());		
 		
 	}
 	@SuppressWarnings("unchecked")
 	public boolean runSync(){
+		if(column == -1){
+			Random rand = ThreadLocalRandom.current();
+			column = rand.nextInt(((n-1) - 0) + 1) + 0;
+			cg.putQueen(row, column, agentView, nogoods);
+			Object[] argss = { row, column };
+
+			for(int j : links){
+				synchronized (blackboard) {
+					blackboard.add(new Message(0, j, argss));
+				}
+			}			
+		}
 		boolean end = false;
 //		while (!end) {
 			if (isSolved()) {
@@ -152,9 +154,9 @@ public class Agent2 implements Runnable {
 			cg.putQueen(row, column, agentView, nogoods);
 		cg.paintforbiddenDomain(row, forbiddenDomain());
 		cg.alert(message, row, nogoods);
-		if (column == -1 || !isConsistent(column)) {
+		if (column == -1 || !isConsistent(agentView.entrySet(), column)) {
 			for (int i : randomDomain()) {
-				if (isConsistent(i)) {
+				if (isConsistent(agentView.entrySet(), i)) {
 					if (column != -1)
 						cg.removeQueen(row, column, true);
 					column = i;
@@ -169,17 +171,19 @@ public class Agent2 implements Runnable {
 					return;
 				}
 			}
-			Set<Entry<Integer, Integer>> nogood = newNogood();
-			if (nogood.isEmpty()) {
-				 System.out.println("NO SOLUTION!!!!!!");
-				 broadcast(4, new Object[1]);
-			}
-			addNogood(nogood);
-			Object[] args = { row, nogood };
-			int minAgent = getLowestPriorityAgentInNogood(nogood);
-			cg.alert("Enviando nogood " + nogood + " al agente " + minAgent, row, nogoods);
-			synchronized (blackboard) {
-				blackboard.add(new Message(1, minAgent, args));
+			Set<Set<Entry<Integer, Integer>>> newNogoods = inconsistentSubsetOfAgentView();
+			for(Set<Entry<Integer, Integer>> nogood : newNogoods){
+				if (nogood.isEmpty()) {
+					System.out.println("NO SOLUTION!!!!!!");
+					broadcast(4, new Object[1]);
+				}
+				addNogood(nogood);
+				Object[] args = { row, nogood };
+				int minAgent = getLowestPriorityAgentInNogood(nogood);
+				cg.alert("Enviando nogood " + nogood + " al agente " + minAgent, row, nogoods);
+				synchronized (blackboard) {
+					blackboard.add(new Message(1, minAgent, args));
+				}
 			}
 		}
 
@@ -194,15 +198,20 @@ public class Agent2 implements Runnable {
 		return clone.entrySet();
 	}
 
-	public boolean isConsistent(int newColumn) {
-		Set<Entry<Integer, Integer>> totalView = totalAgentView(newColumn);
+	public boolean isConsistent(Set<Entry<Integer, Integer>> view, int newColumn) {
+		Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+		for(Entry<Integer, Integer> entry : view){
+			map.put(entry.getKey(), entry.getValue());
+		}
+		map.put(row, newColumn);
+		Set<Entry<Integer, Integer>> totalView = map.entrySet();
 		for (Set<Entry<Integer, Integer>> nogood : nogoods) {
 			if (isSubset(totalView, nogood)) {
 				return false;
 			}
 		}
 
-		for (Entry<Integer, Integer> otherAgent : agentView.entrySet()) {
+		for (Entry<Integer, Integer> otherAgent : view) {
 			if (otherAgent.getKey() != row) {
 				if (newColumn == otherAgent.getValue())
 					return false;
@@ -376,7 +385,7 @@ public class Agent2 implements Runnable {
 	public List<Integer> forbiddenDomain(){
 		List<Integer> ans = new ArrayList<Integer>();
 		for(int i = 0;i<n;i++){
-			if(!isConsistent(i)){
+			if(!isConsistent(agentView.entrySet(), i)){
 				ans.add(i);
 			}
 		}
@@ -497,6 +506,63 @@ public class Agent2 implements Runnable {
 			}
 		}
 		return new HashSet<Entry<Integer, Integer>>();
+	}
+	
+	public Set<Set<Entry<Integer, Integer>>> inconsistentSubsetOfAgentView(){
+		Set<Set<Entry<Integer, Integer>>> answer = new HashSet<Set<Entry<Integer, Integer>>>();
+		Set<Set<Entry<Integer, Integer>>> subsets = powerSet(agentView.entrySet());
+		for(Set<Entry<Integer, Integer>> set : subsets){
+			if(!isConsistentSet(set)){
+				answer.add(set);
+			}
+		}
+		return onlyMinimalNogoods(answer);
+	}
+	
+	
+	public Set<Set<Entry<Integer, Integer>>> onlyMinimalNogoods(Set<Set<Entry<Integer, Integer>>> nogoods){
+		int min = n+1;
+		Set<Set<Entry<Integer, Integer>>> answer = new HashSet<Set<Entry<Integer, Integer>>>();
+		for(Set<Entry<Integer, Integer>> nogood : nogoods){
+			int size = nogood.size();
+			if(size < min){
+				answer.clear();
+				answer.add(nogood);
+				min = size;
+			}
+			else if(size == min){
+				answer.add(nogood);
+			}
+		}
+		return answer;
+	}
+	
+	public Set<Set<Entry<Integer, Integer>>> powerSet(Set<Entry<Integer, Integer>> originalSet) {
+        Set<Set<Entry<Integer, Integer>>> sets = new HashSet<Set<Entry<Integer, Integer>>>();
+        if (originalSet.isEmpty()) {
+            sets.add(new HashSet<Entry<Integer, Integer>>());
+            return sets;
+        }
+        List<Entry<Integer, Integer>> list = new ArrayList<Entry<Integer, Integer>>(cloneEntrySet(originalSet));
+        Entry<Integer, Integer> head = list.get(0);
+        Set<Entry<Integer, Integer>> rest = new HashSet<Entry<Integer, Integer>>(list.subList(1, list.size()));
+        for (Set<Entry<Integer, Integer>> set : powerSet(rest)) {
+            Set<Entry<Integer, Integer>> newSet = new HashSet<Entry<Integer, Integer>>();
+            newSet.add(head);
+            newSet.addAll(set);
+            sets.add(newSet);
+            sets.add(set);
+        }
+        return sets;
+    }
+	
+	public boolean isConsistentSet(Set<Entry<Integer, Integer>> set){
+		for(int column = 0; column < n; column++){
+			if(isConsistent(set, column)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }
