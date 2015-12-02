@@ -243,98 +243,98 @@ public class ChessGUI {
 		synchronized (count) {
 			count++;
 		}
-		this.nogoods[i] = nogoods;
-		this.agentViews[i] = agentView;
-		this.columns[i] = j;
-		chessBoardSquares[j][i].setIcon(new ImageIcon(
-				chessPieceImages[WHITE][QUEEN]));
-		adapters[i] = new MouseAdapter() {
-
-			@Override
-			public void mouseEntered(MouseEvent me) {
-				chessBoardSquares[j][i]
-						.setToolTipText("<html><p>Columna Actual: " + j
-								+ "</p><br>" + "<p>Local View: " + agentView
-								+ "</p><br>" + "Nogoods: " + nogoods
-								+ "</p></html>");
-			}
-		};
-
-		chessBoardSquares[j][i].addMouseListener(adapters[i]);
+//		this.nogoods[i] = nogoods;
+//		this.agentViews[i] = agentView;
+//		this.columns[i] = j;
+//		chessBoardSquares[j][i].setIcon(new ImageIcon(
+//				chessPieceImages[WHITE][QUEEN]));
+//		adapters[i] = new MouseAdapter() {
+//
+//			@Override
+//			public void mouseEntered(MouseEvent me) {
+//				chessBoardSquares[j][i]
+//						.setToolTipText("<html><p>Columna Actual: " + j
+//								+ "</p><br>" + "<p>Local View: " + agentView
+//								+ "</p><br>" + "Nogoods: " + nogoods
+//								+ "</p></html>");
+//			}
+//		};
+//
+//		chessBoardSquares[j][i].addMouseListener(adapters[i]);
 	}
 
 	public void putQueen(int i, int j) {
 		synchronized (count) {
 			count++;
 		}
-
-		chessBoardSquares[j][i].setIcon(new ImageIcon(
-				chessPieceImages[WHITE][QUEEN]));
-		adapters[i] = new MouseAdapter() {
-
-			@Override
-			public void mouseEntered(MouseEvent me) {
-				chessBoardSquares[j][i]
-						.setToolTipText("<html><p>Columna Actual: "
-								+ columns[i] + "</p><br>" + "<p>Local View: "
-								+ agentViews[i] + "</p><br>" + "<p>Nogoods: "
-								+ nogoods[i] + "</p></html>");
-			}
-		};
-
-		chessBoardSquares[j][i].addMouseListener(adapters[i]);
+//
+//		chessBoardSquares[j][i].setIcon(new ImageIcon(
+//				chessPieceImages[WHITE][QUEEN]));
+//		adapters[i] = new MouseAdapter() {
+//
+//			@Override
+//			public void mouseEntered(MouseEvent me) {
+//				chessBoardSquares[j][i]
+//						.setToolTipText("<html><p>Columna Actual: "
+//								+ columns[i] + "</p><br>" + "<p>Local View: "
+//								+ agentViews[i] + "</p><br>" + "<p>Nogoods: "
+//								+ nogoods[i] + "</p></html>");
+//			}
+//		};
+//
+//		chessBoardSquares[j][i].addMouseListener(adapters[i]);
 	}
 
 	public void removeQueen(int i, int j, boolean removeListeners) {
-		chessBoardSquares[j][i].setIcon(null);
-		if (removeListeners && adapters[i] != null) {
-			chessBoardSquares[j][i].removeMouseListener(adapters[i]);
-		}
+//		chessBoardSquares[j][i].setIcon(null);
+//		if (removeListeners && adapters[i] != null) {
+//			chessBoardSquares[j][i].removeMouseListener(adapters[i]);
+//		}
 	}
 
 	public void cleanBoard(int n) {
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
-				removeQueen(i, j, true);
+//		for (int i = 0; i < n; i++)
+//			for (int j = 0; j < n; j++)
+//				removeQueen(i, j, true);
 	}
 
 	public void paintforbiddenDomain(int row, List<Integer> domain) {
-		for (Integer column : domain) {
-			chessBoardSquares[column][row].setBackground(Color.RED);
-		}
+//		for (Integer column : domain) {
+//			chessBoardSquares[column][row].setBackground(Color.RED);
+//		}
 	}
 
 	public void returnOriginalColors() {
-		for (int ii = 0; ii < chessBoardSquares.length; ii++) {
-			for (int jj = 0; jj < chessBoardSquares[ii].length; jj++) {
-
-				if ((jj % 2 == 1 && ii % 2 == 1)
-				// ) {
-						|| (jj % 2 == 0 && ii % 2 == 0)) {
-					chessBoardSquares[ii][jj].setBackground(Color.WHITE);
-				} else {
-					chessBoardSquares[ii][jj].setBackground(Color.BLACK);
-				}
-			}
-		}
+//		for (int ii = 0; ii < chessBoardSquares.length; ii++) {
+//			for (int jj = 0; jj < chessBoardSquares[ii].length; jj++) {
+//
+//				if ((jj % 2 == 1 && ii % 2 == 1)
+//				// ) {
+//						|| (jj % 2 == 0 && ii % 2 == 0)) {
+//					chessBoardSquares[ii][jj].setBackground(Color.WHITE);
+//				} else {
+//					chessBoardSquares[ii][jj].setBackground(Color.BLACK);
+//				}
+//			}
+//		}
 	}
 
 	public void alert(String message, int agent,
 			Set<Set<Entry<Integer, Integer>>> nogoods) {
-		this.message
-				.setText("<html>Turno del agente " + agent + "<br>" + message
-						+ "<br>" + "Nogoods actuales: " + nogoods + "</html>");
-
-		paused.set(true);
-
-		while (paused.get()) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//		this.message
+//				.setText("<html>Turno del agente " + agent + "<br>" + message
+//						+ "<br>" + "Nogoods actuales: " + nogoods + "</html>");
+//
+//		paused.set(true);
+//
+//		while (paused.get()) {
+//			try {
+//				Thread.sleep(100);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 	}
 	
 	public Integer getCount() {

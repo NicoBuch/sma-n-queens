@@ -177,12 +177,13 @@ public class Agent2 implements Runnable {
 					System.out.println("NO SOLUTION!!!!!!");
 					broadcast(4, new Object[1]);
 				}
-				addNogood(nogood);
-				Object[] args = { row, nogood };
-				int minAgent = getLowestPriorityAgentInNogood(nogood);
-				cg.alert("Enviando nogood " + nogood + " al agente " + minAgent, row, nogoods);
-				synchronized (blackboard) {
-					blackboard.add(new Message(1, minAgent, args));
+				if(addNogood(nogood)){
+					Object[] args = { row, nogood };
+					int minAgent = getLowestPriorityAgentInNogood(nogood);
+					cg.alert("Enviando nogood " + nogood + " al agente " + minAgent, row, nogoods);
+					synchronized (blackboard) {
+						blackboard.add(new Message(1, minAgent, args));
+					}
 				}
 			}
 		}
@@ -392,19 +393,19 @@ public class Agent2 implements Runnable {
 		return ans;
 	}
 	
-	public void addNogood(Set<Entry<Integer, Integer>> nogood){
+	public boolean addNogood(Set<Entry<Integer, Integer>> nogood){
 		Set<Set<Entry<Integer, Integer>>> toRemove = new HashSet<Set<Entry<Integer, Integer>>>();
 		for(Set<Entry<Integer, Integer>> myNogood : nogoods){
 			if(isSubset(nogood, myNogood)){
 				nogoods.removeAll(toRemove);
-				return;
+				return false;
 			}
 			else if(isSubset(myNogood, nogood)){
 				toRemove.add(myNogood);
 			}
 		}
 		nogoods.removeAll(toRemove);
-		nogoods.add(nogood);
+		return nogoods.add(nogood);
 	}
 	
 	public Set<Entry<Integer, Integer>> concatNogoods(List<Set<Entry<Integer, Integer>>> combinedNogoods){

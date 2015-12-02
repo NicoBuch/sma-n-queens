@@ -32,7 +32,7 @@ public class Queens {
         f.pack();
         // ensures the minimum size is enforced.
         f.setMinimumSize(f.getSize());
-         f.setVisible(true);
+//         f.setVisible(true);
         List<Agent2> agents = new ArrayList<Agent2>();
         ExecutorService executor = Executors.newFixedThreadPool(n);
         List<Message> blackboard = new ArrayList<Message>();
@@ -40,18 +40,18 @@ public class Queens {
         for(int i = 0; i< n; i++){
         	Agent2 newAgent = new Agent2(n, cg, i, blackboard);
         	agents.add(newAgent);
-//        	executor.execute(newAgent);
+        	executor.execute(newAgent);
         }
-//        executor.shutdown();
+        executor.shutdown();
         
         long time = System.currentTimeMillis();
-//        while(!executor.isTerminated());
-        int allEnded = 0;
-        while(allEnded < n){
-        	int i = rand.nextInt(((n-1) - 0) + 1) + 0;
-    		if(agents.get(i).runSync())
-    			allEnded++;
-        }
+        while(!executor.isTerminated());
+//        int allEnded = 0;
+//        while(allEnded < n){
+//        	int i = rand.nextInt(((n-1) - 0) + 1) + 0;
+//    		if(agents.get(i).runSync())
+//    			allEnded++;
+//        }
         System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
         System.out.println("count: "+ cg.getCount());
         f.dispose();

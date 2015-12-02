@@ -29,12 +29,13 @@ public class SyncQueens {
         f.pack();
         // ensures the minimum size is enforced.
         f.setMinimumSize(f.getSize());
-        f.setVisible(true);
+//        f.setVisible(true);
         
         long time = System.currentTimeMillis();
         Map<Integer, Integer> board = new HashMap<Integer, Integer>();
         if(backtrack(0, n, board, cg)){
         	System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
+        	System.out.println("Count: " + cg.getCount());
         }
         else{
         	System.out.println("FAILED");
@@ -43,12 +44,12 @@ public class SyncQueens {
 	}
 	
 	public static boolean backtrack(int row, int n, Map<Integer, Integer> board, ChessGUI cg) {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				Thread.sleep(500);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 		if(board.size() == n && isConsistent(board)){
 			return true;
 		}
