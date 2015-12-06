@@ -129,23 +129,27 @@ public class Agent2 implements Runnable {
 		return true;
 	}
 
-	public void ok(int otherRow, int otherColumn) {	
+	public void ok(int otherRow, int otherColumn) {
+		cg.setPreviousValue(row, agentView);
 		agentView.put(otherRow, otherColumn);
-		checkLocalView("OK de " + otherRow + " en " + otherColumn);
+		checkLocalView("OK de " + otherRow + " en " + otherColumn, 0, otherRow);
 	}
 
 	public void nogood(int sender, Set<Entry<Integer, Integer>> nogood) {
 		addNogood(nogood);
-		checkLocalView("Nogood de " + sender + ": " + nogood);
+		checkLocalView("Nogood de " + sender + ": " + nogood, 1, sender);
 	}
 
 	public void addLink(int link) {
 		links.add(link);
 	}
 
-	public void checkLocalView(String message) {
+	public void checkLocalView(String message, int method, int sender) {
 		cg.returnOriginalColors();
 		cg.cleanBoard(n);
+		if(method == 0){
+			cg.putMovement(row, sender);
+		}
 		
 		for(Entry<Integer, Integer> entry : agentView.entrySet()){
 			cg.putQueen(entry.getKey(), entry.getValue());

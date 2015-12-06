@@ -15,6 +15,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,8 +52,14 @@ public class ChessGUI {
 	public Set<Set<Entry<Integer, Integer>>>[] nogoods;
 	public MouseAdapter[] adapters;
 	private AtomicBoolean paused = new AtomicBoolean(false);
+	private AtomicBoolean realPositions = new AtomicBoolean(false);
+	private Map<Integer, Integer> actualMap = new HashMap<Integer, Integer>();
+	private Map<Integer, Integer>[] previosViews;
+	private List<Integer> actualReds = new ArrayList<Integer>();
+	private int actualRow;
 	public Integer count = 0;
 	public int[] columns;
+	private Entry<Integer, Integer> previosActive;
 
 	public ChessGUI(int n) {
 		chessBoardSquares = new JButton[n][n];
@@ -61,8 +69,12 @@ public class ChessGUI {
 	public final void initializeGui(int n) {
 		nogoods = (Set<Set<Entry<Integer, Integer>>>[]) new Set[n];
 		agentViews = (Map<Integer, Integer>[]) new Map[n];
+		previosViews = (Map<Integer, Integer>[]) new Map[n];
 		adapters = new MouseAdapter[n];
 		columns = new int[n];
+		for(int i = 0; i < n; i++){
+			columns[i] = -1;
+		}
 
 		// create the images for the chess pieces
 		createImages();
@@ -73,6 +85,83 @@ public class ChessGUI {
 		JToolBar tools = new JToolBar();
 		tools.setFloatable(false);
 		gui.add(tools, BorderLayout.PAGE_START);
+		
+		Color ochre = new Color(204, 119, 34);
+		Color green = new Color(10, 147, 79);
+		
+		//Button to change board and show real positions
+		JButton positionsButton = new JButton("Ver Posiciones Reales");
+		positionsButton.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				cleanBoard(n);
+				
+				// GO back to agentView Positions
+				if(realPositions.get()){
+					chessBoard.setBackground(ochre);
+					for(Entry<Integer, Integer> entry : actualMap.entrySet()){
+						internalPutQueen(entry.getKey(), entry.getValue());
+					}
+					for(Integer column : actualReds){
+						chessBoardSquares[column][actualRow].setBackground(Color.RED);
+					}
+					if(previosActive != null){
+						ImageIcon icon = new ImageIcon(chessPieceImages[BLACK][QUEEN]);
+						chessBoardSquares[previosActive.getValue()][previosActive.getKey()].setIcon(icon);
+					}
+					realPositions.set(false);
+				}
+				
+				//Show real positions of all agents
+				else{
+					chessBoard.setBackground(green);
+					for(Integer column : actualReds){
+						Color bg = null;
+						if((column + actualRow) % 2 == 0){
+							bg = Color.WHITE;
+						}
+						else{
+							bg = Color.BLACK;
+						}
+						chessBoardSquares[column][actualRow].setBackground(bg);
+					}
+					for(int i = 0; i < n; i++){
+						if(columns[i] != -1)
+							internalPutQueen(i, columns[i]);
+					}
+					realPositions.set(true);
+				}
+			}
+		});
+		
+		
+		
+		tools.add(positionsButton);
 		tools.addSeparator();
 		tools.add(message);
 
@@ -113,6 +202,8 @@ public class ChessGUI {
 			@Override
 			public void keyTyped(KeyEvent e) {
 				if (paused.get()) {
+					realPositions.set(false);
+					chessBoard.setBackground(ochre);
 					paused.set(false);
 				}
 			}
@@ -157,6 +248,8 @@ public class ChessGUI {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (paused.get()) {
+					realPositions.set(false);
+					chessBoard.setBackground(ochre);
 					paused.set(false);
 				}
 
@@ -167,7 +260,6 @@ public class ChessGUI {
 		chessBoard.setBorder(new CompoundBorder(new EmptyBorder(n, n, n, n),
 				new LineBorder(Color.BLACK)));
 		// Set the BG to be ochre
-		Color ochre = new Color(204, 119, 34);
 		chessBoard.setBackground(ochre);
 		JPanel boardConstrain = new JPanel(new GridBagLayout());
 		boardConstrain.setBackground(ochre);
@@ -202,15 +294,19 @@ public class ChessGUI {
 		chessBoard.add(new JLabel(""));
 		// fill the top row
 		for (int ii = 0; ii < n; ii++) {
-			chessBoard
-					.add(new JLabel(String.valueOf(ii), SwingConstants.CENTER));
+			JLabel topNumber = new JLabel(String.valueOf(ii),
+					SwingConstants.CENTER);
+			topNumber.setForeground(Color.WHITE);
+			chessBoard.add(topNumber);
 		}
 		// fill the black non-pawn piece row
 		for (int ii = 0; ii < n; ii++) {
 			for (int jj = 0; jj < n; jj++) {
 				switch (jj) {
 				case 0:
-					chessBoard.add(new JLabel("" + ii, SwingConstants.CENTER));
+					JLabel leftNumbers = new JLabel("" + ii, SwingConstants.CENTER);
+					leftNumbers.setForeground(Color.WHITE);
+					chessBoard.add(leftNumbers);
 				default:
 					chessBoard.add(chessBoardSquares[jj][ii]);
 				}
@@ -246,6 +342,7 @@ public class ChessGUI {
 		this.nogoods[i] = nogoods;
 		this.agentViews[i] = agentView;
 		this.columns[i] = j;
+		this.actualMap.put(i, j);
 		chessBoardSquares[j][i].setIcon(new ImageIcon(
 				chessPieceImages[WHITE][QUEEN]));
 		adapters[i] = new MouseAdapter() {
@@ -267,7 +364,7 @@ public class ChessGUI {
 		synchronized (count) {
 			count++;
 		}
-
+		actualMap.put(i, j);
 		chessBoardSquares[j][i].setIcon(new ImageIcon(
 				chessPieceImages[WHITE][QUEEN]));
 		adapters[i] = new MouseAdapter() {
@@ -299,12 +396,16 @@ public class ChessGUI {
 	}
 
 	public void paintforbiddenDomain(int row, List<Integer> domain) {
+		actualReds.clear();
+		actualRow = row;
 		for (Integer column : domain) {
+			actualReds.add(column);
 			chessBoardSquares[column][row].setBackground(Color.RED);
 		}
 	}
 
 	public void returnOriginalColors() {
+		actualMap.clear();
 		for (int ii = 0; ii < chessBoardSquares.length; ii++) {
 			for (int jj = 0; jj < chessBoardSquares[ii].length; jj++) {
 
@@ -336,9 +437,23 @@ public class ChessGUI {
 			}
 		}
 	}
-	
+
 	public Integer getCount() {
 		return count;
+	}
+
+	public void pause() {
+		paused.set(true);
+
+		while (paused.get()) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 	}
 
 	/**
@@ -366,6 +481,58 @@ public class ChessGUI {
 		// }
 	}
 	
-	
+	private void internalPutQueen(int i, int j){
+		chessBoardSquares[j][i].setIcon(new ImageIcon(
+				chessPieceImages[WHITE][QUEEN]));
+		adapters[i] = new MouseAdapter() {
 
+			@Override
+			public void mouseEntered(MouseEvent me) {
+				chessBoardSquares[j][i]
+						.setToolTipText("<html><p>Columna Actual: "
+								+ columns[i] + "</p><br>" + "<p>Local View: "
+								+ agentViews[i] + "</p><br>" + "<p>Nogoods: "
+								+ nogoods[i] + "</p></html>");
+			}
+		};
+
+		chessBoardSquares[j][i].addMouseListener(adapters[i]);
+		
+	}
+	
+	public void setPreviousValue(int agent, Map<Integer, Integer> agentView){
+		previosActive = null;
+		if(previosViews[agent] == null){
+			previosViews[agent] = new HashMap<Integer, Integer>();
+		}
+		previosViews[agent].putAll(agentView);
+	}
+	
+	public void putMovement(int agent, int row){
+		if(previosViews[agent].containsKey(row)){
+			ImageIcon icon = new ImageIcon(chessPieceImages[BLACK][QUEEN]);
+			chessBoardSquares[previosViews[agent].get(row)][row].setIcon(icon);
+			previosActive = new Entry<Integer, Integer>(){
+
+				@Override
+				public Integer getKey() {
+					// TODO Auto-generated method stub
+					return row;
+				}
+
+				@Override
+				public Integer getValue() {
+					// TODO Auto-generated method stub
+					return previosViews[agent].get(row);
+				}
+
+				@Override
+				public Integer setValue(Integer value) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				
+			};
+		}
+	}
 }

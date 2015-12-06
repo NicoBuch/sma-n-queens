@@ -35,6 +35,7 @@ public class SyncQueens {
         Map<Integer, Integer> board = new HashMap<Integer, Integer>();
         if(backtrack(0, n, board, cg)){
         	System.out.println("Elapsed time: " + (System.currentTimeMillis() - time));
+        	System.out.println("count: " + cg.getCount());
         }
         else{
         	System.out.println("FAILED");
@@ -57,6 +58,7 @@ public class SyncQueens {
 		}
 		
 		for(int column : randomDomain(n)){
+//			cg.pause();
 			board.put(row, column);
 			cg.putQueen(row, column);
 			if(backtrack(row+1, n, board, cg)){
